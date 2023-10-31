@@ -1,0 +1,3 @@
+1. Les fil
+2. Plasser punkt fra fil in i en punkt array
+3. Gå gjennom array og plasser et objekt for hvert array
