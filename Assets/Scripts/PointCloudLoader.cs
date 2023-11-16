@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using UnityEngine;
+using UnityEngine.SocialPlatforms.GameCenter;
 
 public class PointCloudLoader : MonoBehaviour
 {
@@ -31,10 +32,13 @@ public class PointCloudLoader : MonoBehaviour
         
         float zMin = float.MaxValue;
         float zMax = float.MinValue;
-
+        
+        
+        
         if (File.Exists(filePath))
         {
             string[] lines = File.ReadAllLines(filePath); // String array storing all the lines in txt file
+            
             Vector3[] vertices = new Vector3[_lineCount]; // Stores all points in Vector3
             _matrices = new Matrix4x4[vertices.Length];
 
@@ -51,10 +55,10 @@ public class PointCloudLoader : MonoBehaviour
                      
                      if (xMax < x) { xMax = x; }
                      if (xMin > x) { xMin = x; }
-
+                     
                      if (yMax < y) { yMax = y; }
                      if (yMin > y) { yMin = y; }
-
+                     
                      if (zMax < z) { zMax = z; }
                      if (zMin > z) { zMin = z; }
 
@@ -62,6 +66,7 @@ public class PointCloudLoader : MonoBehaviour
                      counter++;
                  } 
             }
+            
             
             for (int i = 0; i < vertices.Length; i++) {
                 
