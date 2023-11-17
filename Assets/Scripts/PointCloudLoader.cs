@@ -1,6 +1,9 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Xml.Schema;
+using Unity.Burst.Intrinsics;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SocialPlatforms.GameCenter;
 
@@ -9,11 +12,14 @@ public class PointCloudLoader : MonoBehaviour
     [SerializeField] private Mesh mesh;
     [SerializeField] private Material material;
 
+    [HideInInspector] public Vector3[] vertices;
+    [HideInInspector] public int[] indices; 
+    
     private Matrix4x4[] _matrices;
     private int _lineCount = 963101;
     private RenderParams _rp;
 
-    private void Start()
+    private void Awake()
     {
         ReadFile();
     }
@@ -33,15 +39,13 @@ public class PointCloudLoader : MonoBehaviour
         float zMin = float.MaxValue;
         float zMax = float.MinValue;
         
-        
-        
         if (File.Exists(filePath))
         {
             string[] lines = File.ReadAllLines(filePath); // String array storing all the lines in txt file
             
-            Vector3[] vertices = new Vector3[_lineCount]; // Stores all points in Vector3
+            vertices = new Vector3[_lineCount]; // Stores all points in Vector3
             _matrices = new Matrix4x4[vertices.Length];
-
+            
             // Goes through each line in file
             foreach (string line in lines)
             {
@@ -62,26 +66,46 @@ public class PointCloudLoader : MonoBehaviour
                      if (zMax < z) { zMax = z; }
                      if (zMin > z) { zMin = z; }
 
-                     vertices[counter] = new Vector3(x, y, z); // Adds point into points array
+                     vertices[counter] = new Vector3(x, y, z); // Adds point from file into points array
                      counter++;
                  } 
             }
+
+            indices = CreateIndices(vertices.Length);
+            PointsToMatrix(xMin, xMax, yMin, yMax, zMin, zMax);
             
-            
-            for (int i = 0; i < vertices.Length; i++) {
-                
-                // Centers points around origo
-                vertices[i].x -= 0.5f * (xMin + xMax);
-                vertices[i].y -= 0.5f * (yMin + yMax);
-                vertices[i].z -= 0.5f * (zMin + zMax);
-                
-                // Adds positions of vertices to martix
-                _matrices[i] = Matrix4x4.TRS(vertices[i], Quaternion.identity, Vector3.one);
-            }
+            Debug.Log("Vertex from main: " + vertices[5]);
+            Debug.Log("Index from main: " + indices[5]);
         }
         else
         {
             Debug.LogError("File not found: " + filePath);
+        }
+    }
+
+    // Creates an array of indices
+    int[] CreateIndices(int length)
+    {
+        int[] indicesArray = new int[length];
+        for (int i = 0; i < indicesArray.Length; i++)
+            indicesArray[i] = i;
+
+        return indicesArray;
+    }
+    
+    // Sends points from vertices into the matrix
+    private void PointsToMatrix(float xMin, float xMax, float yMin, float yMax, float zMin, float zMax)
+    {
+        for (int i = 0; i < vertices.Length; i++) {
+                
+            // Centers points around origo
+            vertices[i].x -= 0.5f * (xMin + xMax);
+            vertices[i].y -= 0.5f * (yMin + yMax);
+            vertices[i].z -= 0.5f * (zMin + zMax);
+                
+            // Adds positions of vertices to martix
+            _matrices[i] = Matrix4x4.identity;
+            _matrices[i] = Matrix4x4.TRS(vertices[i], Quaternion.identity, Vector3.one);
         }
     }
 
