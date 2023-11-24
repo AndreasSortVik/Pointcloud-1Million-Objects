@@ -16,33 +16,28 @@ public class MeshGeneration : MonoBehaviour
 
         public MaxAndMin(Vector3[] points)
         {
-            float xTempMax = float.MinValue;
-            float xTempMin = float.MaxValue;
-            float zTempMax = float.MinValue;
-            float zTempMin = float.MaxValue;
+            xMax = float.MinValue;
+            xMin = float.MaxValue;
+            zMax = float.MinValue;
+            zMin = float.MaxValue;
         
             // Goes through points array to find the maximum and minimum values for x and z axis
             for (int i = 0; i < points.Length; i++)
             {
                 Vector3 tempPoint = points[i];
 
-                if (tempPoint.x > xTempMax)
-                    xTempMax = tempPoint.x;
+                if (tempPoint.x > xMax)
+                    xMax = tempPoint.x;
 
-                if (tempPoint.x < xTempMin)
-                    xTempMin = tempPoint.x;
+                if (tempPoint.x < xMin)
+                    xMin = tempPoint.x;
 
-                if (tempPoint.z > zTempMax)
-                    zTempMax = tempPoint.z;
+                if (tempPoint.z > zMax)
+                    zMax = tempPoint.z;
 
-                if (tempPoint.z < zTempMin)
-                    zTempMin = tempPoint.z;
+                if (tempPoint.z < zMin)
+                    zMin = tempPoint.z;
             }
-
-            xMax = xTempMax;
-            xMin = xTempMin;
-            zMax = zTempMax;
-            zMin = zTempMin;
         }
     }
     
@@ -99,7 +94,7 @@ public class MeshGeneration : MonoBehaviour
                 Vector2 vertex = new Vector2(x * xSteps, z * zSteps);
                 float y = CalculateAverageHeight(points, vertex, xRange, zRange);
                 
-                _vertices.Add(new Vector3(vertex.x, y, vertex.y));
+                _vertices.Add(new Vector3(vertex.x, y * 5, vertex.y));
                 
                 Debug.Log("Vertices: " + _vertices[i]);
                 i++;
