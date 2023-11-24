@@ -14,6 +14,8 @@ public class PointCloudLoader : MonoBehaviour
     [SerializeField] private Material material;
 
     [HideInInspector] public Vector3[] points;
+
+    [SerializeField] private string filePath;
     
     private Matrix4x4[] _matrices;
     private int _lineCount = 963101;
@@ -23,11 +25,17 @@ public class PointCloudLoader : MonoBehaviour
     {
         ReadFile();
     }
+    
+    private void Update()
+    {
+        // Renders the instances
+        //Graphics.DrawMeshInstanced(mesh, 0, material, _matrices);
+    }
 
     private void ReadFile()
     {
         int counter = 0;
-        string filePath = Environment.CurrentDirectory + "//Assets//merged.txt";
+        filePath = Environment.CurrentDirectory + filePath;
         
         // Code on how to center all the objects to origa are taken from Linus Nordbakken: https://github.com/Lolinonusos/Skoleunity/blob/main/Assets/Vissim/PunktskyRender.cs
         float xMin = float.MaxValue;
@@ -72,8 +80,6 @@ public class PointCloudLoader : MonoBehaviour
             }
             
             PointsToMatrix(xMin, xMax, yMin, yMax, zMin, zMax);
-            
-            Debug.Log("Vertex from main: " + points[5]);
         }
         else
         {
@@ -95,11 +101,5 @@ public class PointCloudLoader : MonoBehaviour
             _matrices[i] = Matrix4x4.identity;
             _matrices[i] = Matrix4x4.TRS(points[i], Quaternion.identity, Vector3.one);
         }
-    }
-
-    private void Update()
-    {
-        // Renders the instances
-        Graphics.DrawMeshInstanced(mesh, 0, material, _matrices);
     }
 }
