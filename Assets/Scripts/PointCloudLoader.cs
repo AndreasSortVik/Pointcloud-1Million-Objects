@@ -11,6 +11,7 @@ public class PointCloudLoader : MonoBehaviour
     [HideInInspector] public Vector3[] points;
 
     [SerializeField] private string filePath;
+    [SerializeField] private bool renderPointCloud;
     
     private Matrix4x4[] _matrices;
     private int _lineCount = 963101;
@@ -24,7 +25,8 @@ public class PointCloudLoader : MonoBehaviour
     private void Update()
     {
         // Renders the instances
-        //Graphics.DrawMeshInstanced(mesh, 0, material, _matrices);
+        if (renderPointCloud) 
+            Graphics.DrawMeshInstanced(mesh, 0, material, _matrices);
     }
 
     private void ReadFile()
