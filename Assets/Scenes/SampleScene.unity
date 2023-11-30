@@ -611,7 +611,7 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: e1b8d2623448ada4c9fe5d3a04e182d6, type: 2}
   points: []
   filePath: //Assets//merged.txt
-  renderPointCloud: 1
+  renderPointCloud: 0
 --- !u!4 &1537553871
 Transform:
   m_ObjectHideFlags: 0
