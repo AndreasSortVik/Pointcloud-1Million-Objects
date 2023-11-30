@@ -54,10 +54,7 @@ public class BallSimulation : MonoBehaviour
     {
         if (CheckCollision()) // Ball has collided with mesh
         {
-            //Debug.Log("Check collision: true");
-            
             // Gets normal vector from the triangle that the ball is currently inside
-            //Vector3 normalVector = triangleSurface.Triangles[triangleSurface.currentTriangleIndex].NormalVector;
             Vector3 normalVector = triangleSurface.Triangles[_triangleIndex].NormalVector;
 
             Vector3 gravityForce = new Vector3(0, -_gravity, 0);
@@ -70,8 +67,6 @@ public class BallSimulation : MonoBehaviour
             // Updates the position of the ball using equation 8.15
             Vector3 tempPos = transform.position + velocity * deltaTime;
             
-            //Debug.Log("Height: " + triangleSurface.Triangles[_triangleIndex].Height);
-            //transform.position = new Vector3(tempPos.x, triangleSurface._height + _radius, tempPos.z);
             transform.position = new Vector3(tempPos.x, triangleSurface.Triangles[_triangleIndex].Height + _radius,
                 tempPos.z);
             
@@ -79,11 +74,11 @@ public class BallSimulation : MonoBehaviour
         }
         else // Ball is in free fall
         {
-            //Debug.Log("Check collision: false");
             Vector3 position = transform.position;
+            
             float y = _fallSpeed * deltaTime + 0.5f * -_gravity * deltaTime * deltaTime;
             _fallSpeed = _fallSpeed + -_gravity * deltaTime;
-            //transform.Translate(0, y, 0);
+            
             transform.position = new Vector3(position.x, position.y += y, position.z);
         }
     }
@@ -95,10 +90,8 @@ public class BallSimulation : MonoBehaviour
         Vector3 position = transform.position; // C
         _triangleIndex = triangleSurface.UpdateTriangleIndex(new Vector2(position.x, position.z), _triangleIndex);
         
-        //Debug.Log("Triangle index: " + _triangleIndex);
         _barycentricPosition = triangleSurface.Triangles[_triangleIndex].BarycentricPosition; // S
-        //Vector3 normalVector = triangleSurface.Triangles[triangleSurface.currentTriangleIndex].NormalVector; // n
-        Vector3 normalVector = triangleSurface.Triangles[_triangleIndex].NormalVector;
+        Vector3 normalVector = triangleSurface.Triangles[_triangleIndex].NormalVector; // n
 
         dotProduct = Vector3.Dot(_barycentricPosition - position, normalVector);
         
