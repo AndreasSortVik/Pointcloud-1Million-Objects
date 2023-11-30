@@ -132,7 +132,7 @@ public class TriangleSurfaceGeneration : MonoBehaviour
             }
         }
         
-        // I am using both Bjørn Joachim Olsen's and Anders Petershaugen Åsbø's method for finding neighbouring triangles
+        // I am using Anders Petershaugen Åsbø's method for finding neighbouring triangles
         
         // Creates indices and triangle neighbours
         _indices = new List<int>();
@@ -318,6 +318,121 @@ public class TriangleSurfaceGeneration : MonoBehaviour
         return int.MaxValue;
     }
     
+    public int UpdateTriangleIndex(Vector2 ballPosition, int triangleIndex)
+    {
+        Vector3 barycentricCoordinates = new Vector3();
+        float height;
+        Vector3 barycentricPosition = new Vector3();
+
+        Triangle tempTriangle = new Triangle();
+        int tempTriangleIndex;
+
+        // Finds the three vertices for the current triangle the ball is inside
+        Vector3 v0 = Triangles[triangleIndex].Vertices[0];
+        Vector3 v1 = Triangles[triangleIndex].Vertices[1];
+        Vector3 v2 = Triangles[triangleIndex].Vertices[2];
+
+        barycentricCoordinates = GetBarycentricCoordinates(new Vector2(v0.x, v0.z), new Vector2(v1.x, v1.z),
+            new Vector2(v2.x, v2.z), ballPosition);
+
+        //Debug.Log("Barycentric Coordinates: " + barycentricCoordinates);
+
+        // If ball is inside current triangle
+        if (barycentricCoordinates is { x: >= 0, y: >= 0, z: >= 0 })
+        {
+            tempTriangle = Triangles[triangleIndex];
+
+            // Converts barycentric coordinates to height value and world coordinates
+            barycentricPosition = barycentricCoordinates.x * v0 + barycentricCoordinates.y * v1 +
+                                  barycentricCoordinates.z * v2;
+            height = barycentricCoordinates.x * v0.y + barycentricCoordinates.y * v1.y +
+                     barycentricCoordinates.z * v2.y;
+
+            // Reassigns height and barycentric position value in struct
+            tempTriangle.SetBaryAndHeight(barycentricPosition, height);
+
+            Triangles[triangleIndex] = tempTriangle;
+            //Debug.Log("Barycentric Position: " + barycentricPosition);
+
+            return triangleIndex;
+        }
+
+        // Searches through current triangle's neighbouring triangles if ball has moved out of current triangle
+        for (int i = 0; i < Triangles[triangleIndex].Neighbours.Length; i++)
+        {
+            // Changes current triangle index to be one of the neighbouring triangles
+            tempTriangleIndex = Triangles[triangleIndex].Neighbours[i];
+
+            //Debug.Log("Neighbour number " + i + " index: " + tempTriangleIndex);
+
+            //Debug.Log("Temp triangle index: " + tempTriangleIndex);
+
+            if (tempTriangleIndex != -1) // Makes sure to only check triangles that exist
+            {
+                v0 = Triangles[tempTriangleIndex].Vertices[0];
+                v1 = Triangles[tempTriangleIndex].Vertices[1];
+                v2 = Triangles[tempTriangleIndex].Vertices[2];
+
+                barycentricCoordinates = GetBarycentricCoordinates(new Vector2(v0.x, v0.z), new Vector2(v1.x, v1.z),
+                    new Vector2(v2.x, v2.z), ballPosition);
+
+                // If ball is inside current triangle
+                if (barycentricCoordinates is { x: >= 0, y: >= 0, z: >= 0 })
+                {
+                    tempTriangle = Triangles[triangleIndex];
+
+                    // Converts barycentric coordinates to height value and world coordinates
+                    barycentricPosition = barycentricCoordinates.x * v0 + barycentricCoordinates.y * v1 +
+                                          barycentricCoordinates.z * v2;
+                    height = barycentricCoordinates.x * v0.y + barycentricCoordinates.y * v1.y +
+                             barycentricCoordinates.z * v2.y;
+
+                    // Reassigns height and barycentric position value in struct
+                    tempTriangle.SetBaryAndHeight(barycentricPosition, height);
+
+                    Triangles[triangleIndex] = tempTriangle;
+                    //Debug.Log("Barycentric Position: " + barycentricPosition);
+
+                    return tempTriangleIndex;
+                }
+            }
+        }
+        
+                    
+        // If triangle is still not found, loops through all triangles to find the correct one
+        for (int i = 0; i < Triangles.Count; i++)
+        {
+            v0 = Triangles[i].Vertices[0];
+            v1 = Triangles[i].Vertices[1];
+            v2 = Triangles[i].Vertices[2];
+
+            barycentricCoordinates = GetBarycentricCoordinates(new Vector2(v0.x, v0.z), new Vector2(v1.x, v1.z),
+                new Vector2(v2.x, v2.z), ballPosition);
+
+            // Sets the current triangle index value for the triangle that the ball is at the start
+            if (barycentricCoordinates is { x: >= 0, y: >= 0, z: >= 0 })
+            {
+                tempTriangle = Triangles[i];
+
+                // Converts barycentric coordinates to height value and world coordinates
+                barycentricPosition = barycentricCoordinates.x * v0 + barycentricCoordinates.y * v1 +
+                                      barycentricCoordinates.z * v2;
+                height = barycentricCoordinates.x * v0.y + barycentricCoordinates.y * v1.y +
+                         barycentricCoordinates.z * v2.y;
+
+                // Reassigns height and barycentric position value in struct
+                tempTriangle.SetBaryAndHeight(barycentricPosition, height);
+
+                Triangles[i] = tempTriangle;
+                return i;
+            }
+        }
+
+        // If ball is outside mesh bounds
+        Debug.Log("No triangles found!");
+        return int.MaxValue;
+    }
+    
     // Updates which triangle the ball is in, and returns the world coordinates from the barycentric coordinates
     public Vector3 UpdateTriangleIndex(Vector2 ballPosition)
     {
@@ -376,90 +491,6 @@ public class TriangleSurfaceGeneration : MonoBehaviour
         // If ball is outside mesh bounds
         Debug.Log("No triangles found!");
         return new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
-    }
-    
-    public int UpdateTriangleIndex(Vector2 ballPosition, int triangleIndex)
-    {
-        Vector3 barycentricCoordinates = new Vector3();
-        float height;
-        Vector3 barycentricPosition = new Vector3();
-
-        Triangle tempTriangle = new Triangle();
-
-        // Finds the three vertices for the current triangle the ball is inside
-        Vector3 v0 = Triangles[triangleIndex].Vertices[0];
-        Vector3 v1 = Triangles[triangleIndex].Vertices[1];
-        Vector3 v2 = Triangles[triangleIndex].Vertices[2];
-
-        barycentricCoordinates = GetBarycentricCoordinates(new Vector2(v0.x, v0.z), new Vector2(v1.x, v1.z),
-            new Vector2(v2.x, v2.z), ballPosition);
-
-        //Debug.Log("Barycentric Coordinates: " + barycentricCoordinates);
-
-        // If ball is inside current triangle
-        if (barycentricCoordinates is { x: >= 0, y: >= 0, z: >= 0 })
-        {
-            tempTriangle = Triangles[triangleIndex];
-
-            // Converts barycentric coordinates to height value and world coordinates
-            barycentricPosition = barycentricCoordinates.x * v0 + barycentricCoordinates.y * v1 +
-                                  barycentricCoordinates.z * v2;
-            height = barycentricCoordinates.x * v0.y + barycentricCoordinates.y * v1.y +
-                     barycentricCoordinates.z * v2.y;
-
-            // Reassigns height and barycentric position value in struct
-            tempTriangle.SetBaryAndHeight(barycentricPosition, height);
-
-            Triangles[triangleIndex] = tempTriangle;
-            //Debug.Log("Barycentric Position: " + barycentricPosition);
-
-            return triangleIndex;
-        }
-
-        // Searches through current triangle's neighbouring triangles if ball has moved out of current triangle
-        for (int i = 0; i < Triangles[triangleIndex].Neighbours.Length; i++)
-        {
-            // Changes current triangle index to be one of the neighbouring triangles
-            int tempTriangleIndex = Triangles[triangleIndex].Neighbours[i];
-
-            //Debug.Log("Neighbour number " + i + " index: " + tempTriangleIndex);
-
-            //Debug.Log("Temp triangle index: " + tempTriangleIndex);
-
-            if (tempTriangleIndex != -1) // Makes sure to only check triangles that exist
-            {
-                v0 = Triangles[tempTriangleIndex].Vertices[0];
-                v1 = Triangles[tempTriangleIndex].Vertices[1];
-                v2 = Triangles[tempTriangleIndex].Vertices[2];
-
-                barycentricCoordinates = GetBarycentricCoordinates(new Vector2(v0.x, v0.z), new Vector2(v1.x, v1.z),
-                    new Vector2(v2.x, v2.z), ballPosition);
-
-                // If ball is inside current triangle
-                if (barycentricCoordinates is { x: >= 0, y: >= 0, z: >= 0 })
-                {
-                    tempTriangle = Triangles[triangleIndex];
-
-                    // Converts barycentric coordinates to height value and world coordinates
-                    barycentricPosition = barycentricCoordinates.x * v0 + barycentricCoordinates.y * v1 +
-                                          barycentricCoordinates.z * v2;
-                    height = barycentricCoordinates.x * v0.y + barycentricCoordinates.y * v1.y +
-                             barycentricCoordinates.z * v2.y;
-
-                    // Reassigns height and barycentric position value in struct
-                    tempTriangle.SetBaryAndHeight(barycentricPosition, height);
-
-                    Triangles[triangleIndex] = tempTriangle;
-                    //Debug.Log("Barycentric Position: " + barycentricPosition);
-
-                    return tempTriangleIndex;
-                }
-            }
-        }
-
-        // If ball is outside mesh bounds
-        Debug.Log("No triangles found!");
-        return int.MaxValue;
     }
     
     private Vector3 GetBarycentricCoordinates(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 vertex)

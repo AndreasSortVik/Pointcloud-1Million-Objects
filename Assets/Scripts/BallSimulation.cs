@@ -80,10 +80,11 @@ public class BallSimulation : MonoBehaviour
         else // Ball is in free fall
         {
             //Debug.Log("Check collision: false");
-            
+            Vector3 position = transform.position;
             float y = _fallSpeed * deltaTime + 0.5f * -_gravity * deltaTime * deltaTime;
             _fallSpeed = _fallSpeed + -_gravity * deltaTime;
-            transform.Translate(0, y, 0);
+            //transform.Translate(0, y, 0);
+            transform.position = new Vector3(position.x, position.y += y, position.z);
         }
     }
 
